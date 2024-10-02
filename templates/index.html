@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentence Alignment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Sentence Alignment</h1>
+        <form id="alignmentForm">
+            <label for="sentence_vn">Vietnamese Sentence:</label>
+            <textarea id="sentence_vn" name="sentence_vn" required></textarea>
+            <label for="sentence_en">English Sentence:</label>
+            <textarea id="sentence_en" name="sentence_en" required></textarea>
+            <button type="submit">Align Sentences</button>
+        </form>
+        <div id="results" class="results">
+            <h2>Alignment Results:</h2>
+            <div id="alignmentOutput"></div>
+            <img id="alignmentImage" src="" alt="Alignment Plot">
+        </div>
+    </div>
+    <script>
+        document.getElementById('alignmentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            let formData = new FormData(this);
+            
+            fetch('/align', {
+                method: 'POST',
+                body: JSON.stringify({
+                    sentence_vn: formData.get('sentence_vn'),
+                    sentence_en: formData.get('sentence_en')
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let output = '<ul>';
+                data.alignment.forEach(pair => {
+                    output += `<li>Vietnamese word '${pair[0]}' aligns with English word '${pair[1]}'</li>`;
+                });
+                output += '</ul>';
+                
+                document.getElementById('alignmentOutput').innerHTML = output;
+                document.getElementById('alignmentImage').src = 'data:image/png;base64,' + data.image;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
